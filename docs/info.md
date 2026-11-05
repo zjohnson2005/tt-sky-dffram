@@ -35,4 +35,11 @@ The memory contents are not reset, to save area. Only the output register resets
 
 ## External hardware
 
-None required. Switches on the inputs and LEDs on the outputs are enough to try it by hand.
+No extra parts are needed beyond the Tiny Tapeout demo board, but the board's DIP switches only reach `ui_in`. The control signals on the `uio` pins have to be driven another way:
+
+- **Recommended:** drive and read every pin from the demo board's RP2040 using the Tiny Tapeout MicroPython SDK. A short script makes timing exact and repeatable.
+- **By hand:** wire the `uio` pins to switches through the PMOD headers.
+
+Read results from the RP2040 rather than the 7-segment display, since `uo_out` also drives the display segments and binary values light up as odd segment patterns.
+
+Set up the data and address first, wait one clock, and only then assert the command or write enable. The board's signals are not synchronized to the chip's clock, so changing everything at once can let a clock edge capture a mix of old and new values.
