@@ -11,7 +11,9 @@ You can also include images in this folder and reference them in the markdown. E
 
 This is a 32-word by 8-bit RAM (256 bits) built entirely from flip-flops instead of an SRAM macro. It has a single port that can either read or write each clock, and it behaves like a small synchronous SRAM.
 
-On every rising clock edge the RAM reads the word at the current address into an output register, so read data appears on `uo_out` one clock after you set the address. If write enable is high, the word at that address is also replaced with `ui_in` on the same edge.
+The input pins (data, address and write enable) are captured into registers on every clock edge first. On the following edge the RAM reads the word at the registered address into an output register, and if write enable was high it also replaces that word with the registered data. Read data therefore appears on `uo_out` two clocks after you set the address, and a write takes effect one clock after you present it.
+
+Registering the inputs keeps the slow part of the design, the 5-bit address decode and the 32-to-1 read multiplexer, between flip-flops. That makes timing independent of how long signals take to arrive from the chip's pins.
 
 A read and a write to the same address on the same clock returns the old value (read-before-write). The new value shows up on the next clock.
 
@@ -28,7 +30,7 @@ The memory contents are not reset, to save area. Only the output register resets
 
 1. Hold `rst_n` low for a few clocks, then release it.
 2. To write: put the data on `ui_in`, the address on `uio[4:0]`, and set `uio[5] = 1` for one clock.
-3. To read: set `uio[5] = 0` and put the address on `uio[4:0]`. After the next clock edge the stored value appears on `uo_out`.
+3. To read: set `uio[5] = 0` and put the address on `uio[4:0]`. Two clock edges later the stored value appears on `uo_out`.
 4. A simple check is to write each address with its own number (address 5 gets 5), then read them all back.
 
 ## External hardware

@@ -4,6 +4,8 @@
  *
  * DFF RAM: 32 words x 8 bits built entirely from flip-flops, with one
  * synchronous read/write port that behaves like a small SRAM macro.
+ * The pins are registered first, so the deep address decode and read
+ * mux sit between flip-flops instead of hanging off the input pins.
  */
 
 `default_nettype none
@@ -21,9 +23,21 @@ module tt_um_zjohnson2005_dffram (
 
     localparam DEPTH = 32;
 
-    wire [7:0] write_data   = ui_in;
-    wire [4:0] address      = uio_in[4:0];
-    wire       write_enable = uio_in[5];
+    reg [7:0] write_data;
+    reg [4:0] address;
+    reg       write_enable;
+
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            write_data   <= 8'd0;
+            address      <= 5'd0;
+            write_enable <= 1'b0;
+        end else begin
+            write_data   <= ui_in;
+            address      <= uio_in[4:0];
+            write_enable <= uio_in[5];
+        end
+    end
 
     reg [7:0] memory [0:DEPTH-1];
     reg [7:0] read_data;

@@ -31,8 +31,9 @@ async def write(dut, address, value):
 
 async def read(dut, address):
     dut.uio_in.value = address
-    await RisingEdge(dut.clk)
-    await FallingEdge(dut.clk)
+    for _ in range(2):
+        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
     return int(dut.uo_out.value)
 
 
@@ -68,8 +69,10 @@ async def test_read_returns_old_data_during_write(dut):
     dut.uio_in.value = (1 << 5) | 7
     await RisingEdge(dut.clk)
     await FallingEdge(dut.clk)
-    assert int(dut.uo_out.value) == 0x42, "a read during a write returns the old value"
     dut.uio_in.value = 7
+    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
+    assert int(dut.uo_out.value) == 0x42, "a read during a write returns the old value"
     await RisingEdge(dut.clk)
     await FallingEdge(dut.clk)
     assert int(dut.uo_out.value) == 0x99
